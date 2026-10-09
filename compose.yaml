@@ -1,0 +1,12 @@
+services:
+  backend:
+    platform: linux/amd64
+    build:
+      context: ./backend
+    image: go-mnist
+    container_name: go-mnist
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./history:/app/history
+    restart: unless-stopped
