@@ -1,0 +1,23 @@
+<div class="container">
+
+    <canvas
+    #canvas
+    width="400"
+    height="120"
+    (pointerdown)="start($event)"
+    (pointermove)="draw($event)"
+    (pointerup)="stop()"
+    (pointercancel)="stop()"
+    (pointerleave)="stop()"
+    ></canvas>
+
+    <div>
+        <button matButton="filled" color="primary" (click)="predict()">Predict</button>
+        <button matButton="tonal" (click)="resetCanvas()">Clear</button>
+    </div>
+
+    <div class="prediction-container">
+        <div class="prediction-title">Prediction :</div>
+        <div class="prediction-result">{{this.prediction()}}</div>
+    </div>
+</div>

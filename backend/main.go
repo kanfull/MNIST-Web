@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	ort "github.com/yalue/onnxruntime_go"
 )
@@ -28,6 +29,12 @@ func main() {
 	defer reader.Close()
 
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:4200"},
+		AllowMethods: []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders: []string{"Origin", "Content-Type", "Accept"},
+	}))
 
 	r.POST("/get-postcode", func(c *gin.Context) {
 		var req RequestBody
@@ -56,5 +63,5 @@ func main() {
 		c.String(http.StatusOK, postcode)
 	})
 
-	r.Run(":8081")
+	r.Run(":8080")
 }

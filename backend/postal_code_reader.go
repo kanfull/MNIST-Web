@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
-	"image/color"
 	"log"
 	"os"
 	"sort"
@@ -269,29 +268,11 @@ func (r *PostalCodeReader) extractCharacters(imageMat gocv.Mat) (string, error) 
 }
 
 func (r *PostalCodeReader) predictDigit(img gocv.Mat, position int, folder string) int {
-	// make image padding
-	h := img.Rows()
-	w := img.Cols()
-	borderX := int(float64(w) * 0.80)
-	borderY := int(float64(h) * 0.40)
-	padded := gocv.NewMat()
-	defer padded.Close()
-	gocv.CopyMakeBorder(
-		img,
-		&padded,
-		borderY,
-		borderY,
-		borderX,
-		borderX,
-		gocv.BorderConstant,
-		color.RGBA{R: 0, G: 0, B: 0, A: 0},
-	)
-
 	// Resize to 28x28
 	resized := gocv.NewMat()
 	defer resized.Close()
 	gocv.Resize(
-		padded,
+		img,
 		&resized,
 		image.Pt(28, 28),
 		0,
@@ -314,7 +295,7 @@ func (r *PostalCodeReader) predictDigit(img gocv.Mat, position int, folder strin
 	probabilities := ensemble(probabilities1, probabilities2, probabilities3)
 	prediction := argmax(probabilities)
 
-	gocv.IMWrite(fmt.Sprintf("history/%s/%d-%d.png", folder, position, prediction), padded)
+	gocv.IMWrite(fmt.Sprintf("history/%s/%d-%d.png", folder, position, prediction), resized)
 	return prediction
 }
 
