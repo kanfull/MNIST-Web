@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 
+	"image/color"
+
 	"gocv.io/x/gocv"
 
 	"github.com/google/uuid"
@@ -280,11 +282,35 @@ func (r *PostalCodeReader) predictDigit(img gocv.Mat, position int, folder strin
 		gocv.InterpolationLinear,
 	)
 
+	// Add 4-pixel black margins
+	padded := gocv.NewMat()
+	defer padded.Close()
+
+	gocv.CopyMakeBorder(
+		resized,
+		&padded,
+		4, 4, 4, 4,
+		gocv.BorderConstant,
+		color.RGBA{R: 0, G: 0, B: 0, A: 255},
+	)
+
+	// Resize to 28x28 again
+	result := gocv.NewMat()
+	defer result.Close()
+	gocv.Resize(
+		padded,
+		&result,
+		image.Pt(28, 28),
+		0,
+		0,
+		gocv.InterpolationLinear,
+	)
+
 	// Convert image to float32 and normalize
 	inputData := make([]float32, 28*28)
 	for y := 0; y < 28; y++ {
 		for x := 0; x < 28; x++ {
-			pixel := resized.GetUCharAt(y, x)
+			pixel := result.GetUCharAt(y, x)
 			inputData[y*28+x] = float32(pixel) / 255.0
 		}
 	}
@@ -295,7 +321,7 @@ func (r *PostalCodeReader) predictDigit(img gocv.Mat, position int, folder strin
 	probabilities := ensemble(probabilities1, probabilities2, probabilities3)
 	prediction := argmax(probabilities)
 
-	gocv.IMWrite(fmt.Sprintf("history/%s/%d-%d.png", folder, position, prediction), resized)
+	gocv.IMWrite(fmt.Sprintf("history/%s/%d-%d.png", folder, position, prediction), result)
 	return prediction
 }
 
@@ -310,9 +336,10 @@ func (r *PostalCodeReader) getModelProbabilities(model int, inputData []float32)
 	defer inputTensor.Destroy()
 
 	tensor := r.model1
-	if model == 2 {
+	switch model {
+	case 2:
 		tensor = r.model2
-	} else if model == 3 {
+	case 3:
 		tensor = r.model3
 	}
 
@@ -339,7 +366,6 @@ func base64ToMat(base64Str string) (gocv.Mat, error) {
 	if err != nil {
 		return gocv.NewMat(), fmt.Errorf("base64 decode failed: %w", err)
 	}
-
 	// Decode image bytes into Mat
 	mat, err := gocv.IMDecode(data, gocv.IMReadGrayScale)
 	if err != nil {

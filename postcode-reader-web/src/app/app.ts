@@ -19,7 +19,6 @@ export class App {
   async predict() {
     const canvas = this.canvasRef.nativeElement;
     const base64 = canvas.toDataURL('image/png');
-    console.log(base64);
 
     try {
       const response = await fetch('http://localhost:8080/get-postcode', {
@@ -52,6 +51,9 @@ export class App {
     this.prediction.set("-");
     const canvas = this.canvasRef.nativeElement;
     this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw 5 postal code boxes
     const boxWidth = 60;
