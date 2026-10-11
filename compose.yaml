@@ -12,11 +12,10 @@ services:
     restart: unless-stopped
 
   frontend:
-    platform: linux/amd64
     build:
       context: ./postcode-reader-web
     image: angular-mnist
     container_name: angular-mnist
     ports:
-      - "4200:4200"
+      - "4200:80"
     restart: unless-stopped
